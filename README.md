@@ -19,16 +19,16 @@ Production-ready Docker deployment for Odoo 17 with load balancing, connection p
               +-----+-----+ +----+------+ +----+------+
                     |             |             |
                     +-------------+-------------+
-                          |             |
-                   +------v------+ +----v-------+
-                   | PgBouncer   | |   Redis    |
-                   |  (6432)     | |  (6379)    |
-                   +------+------+ +------------+
-                          |
-                   +------v------+
-                   | PostgreSQL  |
-                   |  15 (5432)  |
-                   +-------------+
+                                  |             
+                           +------v------+ 
+                           | PgBouncer   | 
+                           |  (6432)     | 
+                           +------+------+ 
+                                  |
+                           +------v------+
+                           | PostgreSQL  |
+                           |  15 (5432)  |
+                           +-------------+
 
               +-------------------------------+
               |       Monitoring Stack        |
@@ -70,6 +70,8 @@ nano .env
 ```bash
 chmod +x run.sh
 ./run.sh
+chmod +x build-odoo-image.sh
+./build-odoo-image.sh
 ```
 
 ### 3. Start Services
@@ -106,11 +108,7 @@ ODOO_PASSWORD=your_password
 PGADMIN_EMAIL=admin@admin.com
 PGADMIN_PASSWORD=admin
 
-# Redis Sessions
-ODOO_SESSION_REDIS=1
-ODOO_SESSION_REDIS_HOST=redis
-ODOO_SESSION_REDIS_PORT=6379
-ODOO_SESSION_REDIS_PREFIX=odoo17
+
 
 # Monitoring
 GRAFANA_PORT=3001
@@ -152,7 +150,6 @@ Grafana is auto-provisioned with:
 | PostgreSQL | Connections, TPS, database size, locks, replication |
 | PgBouncer | Pool connections (active/idle/waiting), query duration |
 | Nginx | Requests/sec, active connections, dropped connections |
-| Redis | Memory usage, connected clients, commands/sec |
 | Docker | All container logs collected via Alloy |
 | Host | Syslog, auth logs, kernel logs |
 
@@ -172,13 +169,6 @@ In Grafana Explore, use LogQL:
 
 To enable Odoo metrics in Prometheus, install the `prometheus_exporter` addon from the Odoo Apps Store (available for versions 13-18, by Mint System GmbH). Once installed, Prometheus will automatically scrape Odoo's `/metrics` endpoint.
 
-### Redis Exporter
-
-The Redis exporter is commented out in `docker-compose.yml` because Redis runs only in the `docker-compose-redis.yml` stack. To enable it:
-
-1. Uncomment the `redis-exporter` service in `docker-compose.yml`
-2. Uncomment the `redis` scrape job in `monitoring/prometheus.yml`
-3. Run: `docker compose -f docker-compose.yml -f docker-compose-redis.yml up -d`
 
 ## Directory Structure
 
@@ -281,7 +271,6 @@ curl http://localhost:8077/nginx-health
 
 | Issue | Solution |
 |-------|----------|
-| Session lost on refresh | Check Redis connection and `ODOO_SESSION_REDIS=1` |
 | 502 Bad Gateway | Wait for Odoo startup, check `docker compose logs odoo17-ssys` |
 | Database connection error | Verify PgBouncer health and credentials |
 | Upload fails | Check `client_max_body_size` in nginx.conf |
