@@ -1,0 +1,14 @@
+redis
+astor
+xlrd
+xlsxwriter
+imgkit
+dropbox
+pyncclient
+boto3
+nextcloud-api-wrapper
+paramiko
+geojson
+shapely
+polyline
+googlemaps

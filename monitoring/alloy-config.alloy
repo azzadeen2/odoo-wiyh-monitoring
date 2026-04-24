@@ -1,0 +1,73 @@
+// ==========================================
+// Discovery: Docker containers
+// ==========================================
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+// ==========================================
+// Relabel: extract container names and metadata
+// ==========================================
+discovery.relabel "containers" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    target_label  = "container"
+    regex         = "/(.*)"
+    replacement   = "$1"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_log_stream"]
+    target_label  = "stream"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_compose_service"]
+    target_label  = "service"
+  }
+}
+
+// ==========================================
+// Source: Docker container logs
+// ==========================================
+loki.source.docker "containers" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.containers.output
+  forward_to = [loki.process.containers.receiver]
+}
+
+// ==========================================
+// Process: add static labels to container logs
+// ==========================================
+loki.process "containers" {
+  stage.static_labels {
+    values = {
+      job = "docker",
+    }
+  }
+
+  forward_to = [loki.write.default.receiver]
+}
+
+// ==========================================
+// Source: Host syslog
+// ==========================================
+loki.source.file "syslog" {
+  targets = [
+    { __path__ = "/var/log/syslog", job = "syslog" },
+    { __path__ = "/var/log/auth.log", job = "authlog" },
+    { __path__ = "/var/log/kern.log", job = "kern" },
+  ]
+  forward_to = [loki.write.default.receiver]
+}
+
+// ==========================================
+// Write: send all logs to Loki
+// ==========================================
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

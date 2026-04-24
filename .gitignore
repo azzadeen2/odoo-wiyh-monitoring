@@ -1,0 +1,7 @@
+sales_sys_addons/
+.env
+config/odoo.conf
+addons2
+pgbouncer/userlist.txt
+monitoring/grafana/data
+monitoring/prometheus/data
