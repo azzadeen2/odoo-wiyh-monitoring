@@ -90,13 +90,13 @@
       "gridPos": { "h": 8, "w": 8, "x": 0, "y": 10 },
       "targets": [
         {
-          "expr": "pgbouncer_pools_client_active",
-          "legendFormat": "{{pool}} active",
+          "expr": "pgbouncer_pools_client_active_connections",
+          "legendFormat": "{{database}} active",
           "refId": "A"
         },
         {
-          "expr": "pgbouncer_pools_client_waiting",
-          "legendFormat": "{{pool}} waiting",
+          "expr": "pgbouncer_pools_client_waiting_connections",
+          "legendFormat": "{{database}} waiting",
           "refId": "B"
         }
       ],
@@ -114,18 +114,18 @@
       "gridPos": { "h": 8, "w": 8, "x": 8, "y": 10 },
       "targets": [
         {
-          "expr": "pgbouncer_pools_server_active",
-          "legendFormat": "{{pool}} active",
+          "expr": "pgbouncer_pools_server_active_connections",
+          "legendFormat": "{{database}} active",
           "refId": "A"
         },
         {
-          "expr": "pgbouncer_pools_server_idle",
-          "legendFormat": "{{pool}} idle",
+          "expr": "pgbouncer_pools_server_idle_connections",
+          "legendFormat": "{{database}} idle",
           "refId": "B"
         },
         {
-          "expr": "pgbouncer_pools_server_used",
-          "legendFormat": "{{pool}} used",
+          "expr": "pgbouncer_pools_server_used_connections",
+          "legendFormat": "{{database}} used",
           "refId": "C"
         }
       ],
@@ -143,8 +143,8 @@
       "gridPos": { "h": 8, "w": 8, "x": 16, "y": 10 },
       "targets": [
         {
-          "expr": "pgbouncer_stats_query_time_seconds",
-          "legendFormat": "{{pool}}",
+          "expr": "rate(pgbouncer_stats_totals_queries_duration_seconds_total[$__rate_interval])",
+          "legendFormat": "{{database}}",
           "refId": "A"
         }
       ],

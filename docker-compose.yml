@@ -34,11 +34,9 @@ services:
     #   dockerfile: Dockerfile
     image: ${ODOO_IMAGE:-odoo:17}
     # user: root
-    # depends_on:
-      # pgbouncer:
-        # condition: service_healthy
-      # redis:
-      #   condition: service_healthy
+    depends_on:
+      pgbouncer:
+        condition: service_started
     # Ports exposed via nginx load balancer
     expose:
       - "8069"
@@ -93,6 +91,7 @@ services:
       MAX_CLIENT_CONN: "100"
       DEFAULT_POOL_SIZE: "30"
       LISTEN_PORT: "6432"
+      ADMIN_USERS: "${ODOO_USER}"
     volumes:
       - ./pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt
     # ports:
@@ -194,9 +193,10 @@ services:
     image: prometheuscommunity/postgres-exporter:latest
     container_name: postgres-exporter
     environment:
-      DATA_SOURCE_URI: "db15:5432/${ODOO_DB_NAME:-postgres}?sslmode=disable"
+      DATA_SOURCE_URI: "db15:5432/postgres?sslmode=disable"
       DATA_SOURCE_USER: "${POSTGRES_USER}"
       DATA_SOURCE_PASS: "${POSTGRES_PASSWORD}"
+      PG_EXPORTER_EXTEND_QUERY_PATH: ""
     depends_on:
       db15:
         condition: service_healthy
@@ -205,11 +205,8 @@ services:
   pgbouncer-exporter:
     image: prometheuscommunity/pgbouncer-exporter:latest
     container_name: pgbouncer-exporter
-    environment:
-      PGBOUNCER_HOST: "pgbouncer"
-      PGBOUNCER_PORT: "6432"
-      PGBOUNCER_USER: "${ODOO_USER}"
-      PGBOUNCER_PASSWORD: "${ODOO_PASSWORD}"
+    command:
+      - "--pgBouncer.connectionString=postgres://${ODOO_USER}:${ODOO_PASSWORD}@pgbouncer:6432/pgbouncer?sslmode=disable"
     depends_on:
       - pgbouncer
     restart: always
